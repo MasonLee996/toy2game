@@ -4,7 +4,7 @@ import { PNG } from 'pngjs';
 import { registry, root } from './catalog.mjs';
 
 const url = process.env.SITE_URL ?? 'http://localhost:5173/';
-const sceneHosts = { 'penguin-ice': '#scene', 'rabbit-trap': '.scene-host', 'balance-astronaut': '#space-scene', 'parking-escape': '#parking-scene', 'frog-feast': '#frog-scene', 'flip-match': '#match-scene' };
+const sceneHosts = { 'penguin-ice': '#scene', 'rabbit-trap': '.scene-host', 'balance-astronaut': '#space-scene', 'parking-escape': '#parking-scene', 'frog-feast': '#frog-scene', 'flip-match': '#match-scene', 'garden-builder': '#garden-scene' };
 const games = process.env.GAME_ID ? registry.filter(game => game.id === process.env.GAME_ID) : registry;
 if (!games.length) throw new Error(`Unknown game: ${process.env.GAME_ID}`);
 const browser = await chromium.launch({ channel: process.env.PLAYWRIGHT_CHANNEL ?? 'chrome' });
@@ -42,6 +42,17 @@ try {
       });
       await page.waitForTimeout(500);
       await page.evaluate(() => { if (window.__flip) window.__flip.game.paused = true; });
+    }
+    if (game.id === 'garden-builder') {
+      // Every item, including brick borders and each tile, uses the visible placement action.
+      await page.locator('#auto-mortar').check();
+      await page.locator('#follow-plan').check();
+      for (let step = 0; step < 200 && !await page.locator('#place').isDisabled(); step++) {
+        await page.locator('#place').click();
+        await page.waitForFunction(() => document.querySelector('#garden-scene')?.getAttribute('aria-busy') === 'false');
+      }
+      await page.getByRole('button', { name: '显示或隐藏网格' }).click();
+      await page.getByRole('button', { name: '拆除模式' }).click();
     }
     // Resize the existing game scene for a cover; no separate illustration or scene implementation.
     await page.addStyleTag({ content: `${host} { position: fixed !important; inset: 0 !important; width: 1200px !important; height: 800px !important; z-index: 9999 !important; } body * { visibility: hidden !important; } ${selector} { visibility: visible !important; }` });

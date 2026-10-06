@@ -3,6 +3,7 @@ import { PNG } from 'pngjs';
 import parkingLevels from '../../games/parking-escape/src/levels.json' with { type: 'json' };
 
 for (const game of [
+  { id: 'garden-builder', title: '小院建造家', canvas: '#garden-scene canvas', control: '游戏规则', action: '向右旋转视角', close: '关闭规则', debug: '__garden' },
   { id: 'flip-match', title: '翻棋对对碰', canvas: '#match-scene canvas', control: '游戏规则', action: '向右旋转视角', close: '关闭规则', debug: '__flip' },
   { id: 'frog-feast', title: '青蛙吃豆豆', canvas: '#frog-scene canvas', control: '游戏规则', action: '向右旋转视角', close: '关闭规则', debug: '__frog' },
   { id: 'penguin-ice', title: '企鹅敲敲敲', canvas: '#scene canvas', control: '游戏设置', action: '向右旋转视角', close: '关闭设置', debug: '__iceGame' },
@@ -41,6 +42,30 @@ for (const game of [
     await page.getByRole('button', { name: game.control, exact: true }).click();
     await expect(page.locator('dialog[open]')).toBeVisible();
     await page.locator('dialog[open]').getByRole('button', { name: game.close, exact: true }).click();
+    if (game.id === 'garden-builder') {
+      await expect(page.locator('#piece-count')).toHaveText('27');
+      await expect(page.locator('#auto-mortar')).toBeChecked();
+      await page.getByRole('button', { name: '取消预览', exact: true }).click();
+      await expect(page.locator('#preview-actions')).toBeHidden();
+      await page.locator('#hint').click();
+      await page.getByRole('button', { name: '确认放置', exact: true }).click();
+      await expect(page.locator('#piece-count')).toHaveText('28');
+      await page.getByRole('button', { name: '撤销一步' }).click();
+      await expect(page.locator('#piece-count')).toHaveText('27');
+      await page.getByRole('button', { name: '重做一步' }).click();
+      await page.reload();
+      await expect(page.locator('#piece-count')).toHaveText('28');
+      await page.getByRole('button', { name: '游戏设置' }).click();
+      await page.locator('input[value="empty"]').check();
+      await page.getByRole('button', { name: '关闭设置', exact: true }).click();
+      await expect(page.locator('#piece-count')).toHaveText('28');
+      await page.getByRole('button', { name: '新的一局' }).click();
+      await page.getByRole('button', { name: '继续这局', exact: true }).click();
+      await expect(page.locator('#piece-count')).toHaveText('28');
+      await page.getByRole('button', { name: '新的一局' }).click();
+      await page.getByRole('button', { name: '重新开局', exact: true }).click();
+      await expect(page.locator('#piece-count')).toHaveText('27');
+    }
     if (game.id === 'flip-match') {
       await expect(page.locator('[data-player="1"]')).toContainText('普通机器人');
       await page.getByRole('button', { name: '游戏设置', exact: true }).click();
