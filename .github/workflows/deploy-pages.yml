@@ -34,7 +34,7 @@ jobs:
         run: npm run build
         env:
           SITE_BASE: /toy2game/
-          SITE_ORIGIN: https://masonlee996.github.io/toy2game
+          SITE_ORIGIN: https://masonlee996.github.io
 
       - name: Configure Pages
         uses: actions/configure-pages@v5
